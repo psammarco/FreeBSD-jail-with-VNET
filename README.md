@@ -2,6 +2,8 @@
 
 We will be creating a FreeBSD jail using the [VNET(9)](https://www.freebsd.org/cgi/man.cgi?query=vnet&sektion=9) virtualized network stack, together with [EPAIR(4)](https://www.freebsd.org/cgi/man.cgi?query=epair&sektion=4&apropos=0&manpath=FreeBSD+12.1-RELEASE+and+Ports).
 
+NOTE: This guide doesn't cover rootfs image and dataset creation.
+
 The EPAIR is a pair of two virtual interfaces which are teoretically designed to work as a Ethernet crossover cable, thus linking them end to end. 
 
 When using VNET with EPAIR, the epairXb interface is seen and threated as a physical interface by the Jail, and thus allowing us to do some cool stuff with our jail.
@@ -92,6 +94,69 @@ sudo service pf start
 sudo service pflog start
 sudo service jail start www
  ```
- 
- 
- 
+#### The result ####
+```
+[admin@lockdown ~]$ jls
+   JID  IP Address      Hostname                      Path
+     1                  www                           /jails/www0/12.1-RELEASE/root
+[admin@lockdown ~]$ 
+
+[admin@lockdown ~]$ ifconfig epair0a 
+epair0a: flags=8843<UP,BROADCAST,RUNNING,SIMPLEX,MULTICAST> metric 0 mtu 1500
+	options=8<VLAN_MTU>
+	ether 02:86:93:8f:00:0a
+	inet6 fe80::86:93ff:fe8f:a%epair0a prefixlen 64 scopeid 0x4
+	inet 192.168.69.1 netmask 0xffffff00 broadcast 192.168.69.255
+	groups: epair
+	media: Ethernet 10Gbase-T (10Gbase-T <full-duplex>)
+	status: active
+	nd6 options=21<PERFORMNUD,AUTO_LINKLOCAL>
+[admin@lockdown ~]$
+
+[admin@lockdown ~]$ netstat -nr4
+Routing tables
+
+Internet:
+Destination        Gateway            Flags     Netif Expire
+default            10.16.0.1          UGS      vtnet0
+10.16.0.0/24       link#1             U        vtnet0
+10.16.0.101        link#1             UHS         lo0
+127.0.0.1          link#2             UH          lo0
+192.168.69.0/24    link#4             U       epair0a
+192.168.69.1       link#4             UHS         lo0
+[admin@lockdown ~]$ 
+
+[admin@lockdown ~]$ sudo jexec 1 ifconfig
+lo0: flags=8049<UP,LOOPBACK,RUNNING,MULTICAST> metric 0 mtu 16384
+	options=680003<RXCSUM,TXCSUM,LINKSTATE,RXCSUM_IPV6,TXCSUM_IPV6>
+	inet6 ::1 prefixlen 128
+	inet6 fe80::1%lo0 prefixlen 64 scopeid 0x1
+	inet 127.0.0.1 netmask 0xff000000
+	groups: lo
+	nd6 options=21<PERFORMNUD,AUTO_LINKLOCAL>
+pflog0: flags=0<> metric 0 mtu 33160
+	groups: pflog
+jail0: flags=8843<UP,BROADCAST,RUNNING,SIMPLEX,MULTICAST> metric 0 mtu 1500
+	options=8<VLAN_MTU>
+	ether 02:86:93:8f:00:0b
+	inet 192.168.69.254 netmask 0xffffff00 broadcast 192.168.69.255
+	groups: epair
+	media: Ethernet 10Gbase-T (10Gbase-T <full-duplex>)
+	status: active
+	nd6 options=29<PERFORMNUD,IFDISABLED,AUTO_LINKLOCAL>
+[admin@lockdown ~]$ 
+
+[admin@lockdown ~]$ sudo jexec 1 ping -c2 google.com
+PING google.com (172.217.169.46): 56 data bytes
+64 bytes from 172.217.169.46: icmp_seq=0 ttl=55 time=6.920 ms
+64 bytes from 172.217.169.46: icmp_seq=1 ttl=55 time=8.874 ms
+
+--- google.com ping statistics ---
+2 packets transmitted, 2 packets received, 0.0% packet loss
+round-trip min/avg/max/stddev = 6.920/7.897/8.874/0.977 ms
+[admin@lockdown ~]$ 
+```
+
+Job done!
+
+
