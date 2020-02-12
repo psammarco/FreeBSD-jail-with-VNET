@@ -4,9 +4,9 @@ We will be creating a FreeBSD jail using the [VNET(9)](https://www.freebsd.org/c
 
 NOTE: This guide doesn't cover rootfs image and dataset creation.
 
-The EPAIR is a pair of two virtual interfaces which are teoretically designed to work as a Ethernet crossover cable, thus linking them end to end. 
+The EPAIR is a pair of two virtual interfaces which are theoretically designed to work as a Ethernet crossover cable, thus linking them end to end. 
 
-When using VNET with EPAIR, the epairXb interface is seen and threated as a physical interface by the Jail, and thus allowing us to do some cool stuff with our jail.
+When using VNET together with EPAIR, the epairXb interface is seen and threated as a physical interface by the Jail, and thus allowing us to do some cool stuff with our jail.
 
 #### This confiruation will achieve the following setup ####
 - a. Two logical interfaces, epairXa and epairXb, are created for each jail, where epairXa is assigned to the HOST and epairXb to the jail guest
